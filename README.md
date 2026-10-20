@@ -1,8 +1,8 @@
 # Dividir y unir PDF
 
-Herramienta web para **dividir** un PDF en varios archivos y **unir** varios PDF en uno, pensada para archivos grandes (probada con PDF de más de 1 GB). Todo se procesa en el navegador: los archivos no se suben a ningún servidor, por eso funciona como sitio estático en GitHub Pages.
+Herramienta web para **dividir** un PDF en varios archivos y **unir** varios PDF en uno, pensada para archivos grandes (probada con PDF de más de 1 GB). Todo se procesa en el navegador: los archivos no se suben a ningún servidor.
 
-**Usarla:** https://becerrapablo.github.io/dividir-pdf/
+
 
 ## Qué hace
 
@@ -31,18 +31,6 @@ En ambos casos los resultados se descargan de a uno o todos juntos en un ZIP. Ta
 | Resultados | Se escriben directo en el almacenamiento privado del navegador ([OPFS](https://developer.mozilla.org/docs/Web/API/File_System_API/Origin_private_file_system)), no en memoria. Si no está disponible (por ejemplo, en una ventana privada) se usa memoria como respaldo. |
 | Limpieza | Al cerrar la pestaña, un service worker mínimo (`sw.js`, no intercepta pedidos ni guarda caché) borra los temporales de esa pestaña. Si no llegara a hacerlo, se borran la próxima vez que se abra la herramienta. |
 | Muchos archivos de salida | "Partes iguales" usa una sola pasada de qpdf (`--split-pages`): dividir 5.000 páginas en 5.000 PDF tarda segundos. |
-
-Tiempos medidos con un PDF de 1,16 GB y 1.600 páginas escaneadas (Chromium, Linux), verificando cada resultado página por página contra el original:
-
-- abrir y ver las primeras miniaturas: 2–4 s
-- extraer 400 páginas (310 MB): 5–7 s
-- dividir en 16 partes de 100 páginas: 12–18 s, y armar el ZIP de las 16 (1,16 GB): 11–19 s
-- unir ese PDF con otro: 9–13 s
-- 5.000 páginas en 5.000 PDF, y su ZIP: 5–8 s cada paso
-
-(Los rangos son de dos corridas; dependen sobre todo de la velocidad del disco.)
-
-Mientras se recorren las 1.600 miniaturas, la pestaña se mantiene alrededor de 1,2 GB de memoria: PDF.js se reabre cada ~384 MB leídos para soltar lo que ya leyó.
 
 ## Navegadores
 
@@ -89,10 +77,6 @@ assets/
   js/pages.js, ui.js   utilidades
 vendor/                PDF.js, qpdf (wasm), client-zip
 ```
-
-## Publicación en GitHub Pages
-
-En el repositorio: **Settings → Pages → Build and deployment → Deploy from a branch**, rama `main`, carpeta `/ (root)`.
 
 ## Créditos y licencias
 
