@@ -1,0 +1,16 @@
+{
+  "name": "dividir-pdf",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dividir y unir PDFs (incluso de varios GB) directamente en el navegador. Sitio estático para GitHub Pages.",
+  "type": "module",
+  "scripts": {
+    "vendor": "node scripts/vendor.mjs",
+    "serve": "python3 -m http.server 8080"
+  },
+  "devDependencies": {
+    "@neslinesli93/qpdf-wasm": "0.3.0",
+    "client-zip": "2.5.1",
+    "pdfjs-dist": "6.4.299"
+  }
+}

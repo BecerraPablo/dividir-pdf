@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dividir y unir PDF</title>
+  <meta name="description" content="Dividí un PDF en varios o uní varios en uno, incluso archivos de más de 1 GB. Todo se procesa en tu navegador: los archivos no se suben a ningún servidor.">
+  <meta name="theme-color" content="#1f5c45">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script type="module" src="assets/js/app.js"></script>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-scissors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+      <symbol id="i-zoom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="i-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></symbol>
+      <symbol id="i-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+      <symbol id="i-grip" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6 2.5h8l4.5 4.5v14.5H6z"/><path d="M14 2.5V7h4.5"/></symbol>
+      <symbol id="i-stack" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M18 8h22l10 10v32H18z"/><path d="M40 8v10h10"/><path d="M12 16v40h30" stroke-dasharray="4 4"/><path d="M6 31h52" stroke-dasharray="6 5"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="6" fill="#1f5c45"/><path d="M9 6h10l5 5v15H9z" fill="#fff"/><path d="M19 6v5h5" fill="none" stroke="#c9d6cf" stroke-width="1.2"/><path d="M5 17h22" stroke="#ffd23f" stroke-width="2" stroke-dasharray="3 2.4"/></svg>
+      <span>Dividir y unir PDF</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Herramienta">
+      <button class="tab" role="tab" id="tab-split" aria-controls="view-split" aria-selected="true">Dividir</button>
+      <button class="tab" role="tab" id="tab-merge" aria-controls="view-merge" aria-selected="false" tabindex="-1">Unir</button>
+    </nav>
+    <p class="privacy">
+      <svg><use href="#i-lock"/></svg>
+      <span>Todo se procesa en tu computadora. Los PDF no se suben a ningún servidor.</span>
+    </p>
+  </header>
+
+  <main>
+    <!-- ============================================================ DIVIDIR -->
+    <section class="view is-empty" id="view-split" role="tabpanel" aria-labelledby="tab-split">
+      <div class="work">
+        <div class="toolbar" id="split-toolbar" hidden>
+          <div class="docinfo">
+            <span class="name" id="split-name"></span>
+            <span class="meta" id="split-meta"></span>
+            <button class="btn small ghost" id="split-change">Cambiar archivo</button>
+          </div>
+          <div class="toolgroup" role="group" aria-label="Selección">
+            <span class="label">Seleccionar</span>
+            <button class="btn small" data-sel="all">Todas</button>
+            <button class="btn small" data-sel="none">Ninguna</button>
+            <button class="btn small" data-sel="invert">Invertir</button>
+          </div>
+          <div class="toolgroup">
+            <label class="label" for="thumb-size">Tamaño</label>
+            <input type="range" id="thumb-size" min="70" max="280" step="10" value="150">
+          </div>
+          <div class="toolgroup">
+            <label class="label" for="goto">Ir a la pág.</label>
+            <input class="input num goto" id="goto" type="number" min="1" inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="work-wrap">
+          <div class="mat" id="split-mat">
+            <div class="drop" id="split-drop">
+              <div class="drop-inner">
+                <svg class="drop-icon"><use href="#i-stack"/></svg>
+                <h2>Soltá un PDF acá para dividirlo</h2>
+                <p>Vas a ver todas las páginas en miniatura para elegir cuáles van en cada archivo: por rangos (desde–hasta) o tocándolas una por una.</p>
+                <button class="btn mark big" id="split-pick">Elegir PDF</button>
+                <p class="fine">Pensado para archivos grandes: probado con PDF de más de 1&nbsp;GB. El archivo se lee desde tu disco y nunca sale de tu computadora.</p>
+              </div>
+            </div>
+            <div class="loading" id="split-loading" hidden>
+              <div><div class="spinner"></div><span id="split-loading-text">Abriendo el PDF…</span></div>
+            </div>
+            <div class="pages" id="split-pages" role="listbox" aria-multiselectable="true" aria-label="Páginas del documento" hidden></div>
+          </div>
+          <div class="selbar" id="selbar" hidden>
+            <span class="count" id="sel-count"></span>
+            <span class="which" id="sel-which"></span>
+            <button class="btn small mark" id="sel-to-part">Nueva parte con estas páginas</button>
+            <button class="btn small on-dark" id="sel-extract">Extraer a un PDF</button>
+            <button class="icon-btn" id="sel-clear" aria-label="Quitar la selección" style="color:#fff"><svg><use href="#i-x"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side" id="split-side" aria-label="Archivos que se van a generar">
+        <div class="side-scroll">
+          <h2>Archivos a generar</h2>
+          <p class="lead">Cada parte se guarda como un PDF aparte.</p>
+          <div class="seg" role="radiogroup" aria-label="Cómo dividir">
+            <button role="radio" aria-checked="true" data-mode="parts">Elegir partes</button>
+            <button role="radio" aria-checked="false" data-mode="every">Partes iguales</button>
+          </div>
+
+          <div id="mode-parts">
+            <ol class="parts" id="parts"></ol>
+            <div class="empty-parts" id="parts-empty">
+              Todavía no hay partes. Agregá un rango con <b>desde</b> y <b>hasta</b>, o seleccioná páginas en las miniaturas y creá una parte con ellas.
+            </div>
+            <div class="side-actions">
+              <button class="btn" id="add-range"><svg><use href="#i-plus"/></svg>Agregar rango</button>
+              <button class="btn" id="add-selection" disabled><svg><use href="#i-plus"/></svg>Parte con la selección</button>
+            </div>
+            <p class="hint">Consejo: tocá una página y después otra con <kbd>Shift</kbd> apretado para seleccionar todas las del medio.</p>
+          </div>
+
+          <div id="mode-every" class="every" hidden>
+            <div class="every-row">
+              <label for="every-n">Cada</label>
+              <input class="input num" id="every-n" type="number" min="1" value="10" inputmode="numeric">
+              <span>páginas</span>
+            </div>
+            <p class="every-summary" id="every-summary"></p>
+          </div>
+
+          <div id="split-results"></div>
+        </div>
+        <div class="side-footer">
+          <p class="run-summary" id="split-summary"></p>
+          <button class="btn primary big" id="split-run" disabled>Generar archivos</button>
+        </div>
+        <details class="about">
+          <summary>Cómo funciona</summary>
+          <p>Las miniaturas se dibujan con PDF.js leyendo solo los pedazos del archivo que hacen falta. Para cortar y unir se usa qpdf compilado a WebAssembly, que copia las páginas sin recomprimirlas: no se pierde calidad.</p>
+          <p>Los resultados se guardan temporalmente en el almacenamiento privado del navegador y se borran al cerrar la pestaña.</p>
+        </details>
+      </aside>
+    </section>
+
+    <!-- ============================================================ UNIR -->
+    <section class="view is-empty" id="view-merge" role="tabpanel" aria-labelledby="tab-merge" hidden>
+      <div class="work">
+        <div class="toolbar" id="merge-toolbar" hidden>
+          <div class="docinfo">
+            <span class="name" id="merge-count"></span>
+            <span class="meta" id="merge-meta"></span>
+          </div>
+          <div class="toolgroup">
+            <button class="btn small" id="merge-add"><svg><use href="#i-plus"/></svg>Agregar PDF</button>
+            <button class="btn small" id="merge-sort">Ordenar por nombre</button>
+            <button class="btn small ghost danger" id="merge-clear">Quitar todos</button>
+          </div>
+        </div>
+        <div class="work-wrap">
+          <div class="mat" id="merge-mat">
+            <div class="drop" id="merge-drop">
+              <div class="drop-inner">
+                <svg class="drop-icon"><use href="#i-stack"/></svg>
+                <h2>Soltá acá los PDF que querés unir</h2>
+                <p>Podés agregar todos los que quieras, ordenarlos arrastrándolos y elegir qué páginas tomar de cada uno.</p>
+                <button class="btn mark big" id="merge-pick">Elegir PDF</button>
+                <p class="fine">Los archivos se leen desde tu disco y nunca salen de tu computadora.</p>
+              </div>
+            </div>
+            <ol class="files" id="files" aria-label="PDF a unir, en orden" hidden></ol>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side" id="merge-side" aria-label="Archivo unido">
+        <div class="side-scroll">
+          <h2>Archivo unido</h2>
+          <p class="lead">Se arma en el orden de la lista. Si dejás “Páginas” vacío, se toma el PDF completo.</p>
+          <label class="field">
+            <span>Nombre del archivo</span>
+            <input class="input" id="merge-name" value="unido.pdf" spellcheck="false">
+          </label>
+          <div id="merge-results"></div>
+        </div>
+        <div class="side-footer">
+          <p class="run-summary" id="merge-summary"></p>
+          <button class="btn primary big" id="merge-run" disabled>Unir PDF</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <input type="file" id="file-split" accept="application/pdf,.pdf" hidden>
+  <input type="file" id="file-merge" accept="application/pdf,.pdf" multiple hidden>
+
+  <!-- vista ampliada de una página -->
+  <dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
+    <div class="viewer-head">
+      <span class="title" id="viewer-title">Página</span>
+      <button class="btn small mark" id="viewer-select">Seleccionar</button>
+      <button class="icon-btn" id="viewer-prev" aria-label="Página anterior"><svg><use href="#i-left"/></svg></button>
+      <button class="icon-btn" id="viewer-next" aria-label="Página siguiente"><svg><use href="#i-right"/></svg></button>
+      <button class="icon-btn" id="viewer-close" aria-label="Cerrar"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="viewer-body" id="viewer-body">
+      <div class="spinner" id="viewer-spinner"></div>
+      <canvas id="viewer-canvas" width="0" height="0"></canvas>
+    </div>
+  </dialog>
+
+  <!-- progreso -->
+  <dialog id="progress-dlg" aria-labelledby="progress-title">
+    <div class="dlg">
+      <h2 id="progress-title">Procesando…</h2>
+      <p id="progress-text"></p>
+      <div class="progress" id="progress-bar"><div></div></div>
+      <div class="progress-detail"><span id="progress-step"></span><span id="progress-pct"></span></div>
+      <div class="dlg-actions">
+        <button class="btn" id="progress-cancel">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- contraseña -->
+  <dialog id="password-dlg" aria-labelledby="password-title">
+    <form class="dlg" method="dialog">
+      <h2 id="password-title">PDF protegido</h2>
+      <p id="password-text">Este PDF pide contraseña para abrirlo.</p>
+      <label class="field">
+        <span>Contraseña</span>
+        <input class="input" id="password-input" type="password" autocomplete="off">
+      </label>
+      <div class="dlg-actions">
+        <button class="btn" value="cancel" formnovalidate>Cancelar</button>
+        <button class="btn primary" value="ok">Abrir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- confirmación -->
+  <dialog id="confirm-dlg" aria-labelledby="confirm-title">
+    <form class="dlg" method="dialog">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text"></p>
+      <div class="dlg-actions">
+        <button class="btn" value="cancel">Cancelar</button>
+        <button class="btn primary" value="ok" id="confirm-ok">Aceptar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <noscript>
+    <p style="padding:24px">Esta herramienta necesita JavaScript activado.</p>
+  </noscript>
+</body>
+</html>
