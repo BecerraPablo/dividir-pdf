@@ -33,11 +33,13 @@ En ambos casos los resultados se descargan de a uno o todos juntos en un ZIP. Ta
 
 Tiempos medidos con un PDF de 1,16 GB y 1.600 páginas escaneadas (Chromium, Linux), verificando cada resultado página por página contra el original:
 
-- abrir y ver las primeras miniaturas: ~3 s
-- extraer 400 páginas (310 MB): ~5 s
-- dividir en 16 partes de 100 páginas: ~12 s, y armar el ZIP de las 16 (1,16 GB): ~11 s
-- unir ese PDF con otro: ~9 s
-- 5.000 páginas en 5.000 PDF (y su ZIP): ~5 s cada paso
+- abrir y ver las primeras miniaturas: 2–4 s
+- extraer 400 páginas (310 MB): 5–7 s
+- dividir en 16 partes de 100 páginas: 12–18 s, y armar el ZIP de las 16 (1,16 GB): 11–19 s
+- unir ese PDF con otro: 9–13 s
+- 5.000 páginas en 5.000 PDF, y su ZIP: 5–8 s cada paso
+
+(Los rangos son de dos corridas; dependen sobre todo de la velocidad del disco.)
 
 Mientras se recorren las 1.600 miniaturas, la pestaña se mantiene alrededor de 1,2 GB de memoria: PDF.js se reabre cada ~384 MB leídos para soltar lo que ya leyó.
 
