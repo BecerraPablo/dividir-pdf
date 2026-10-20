@@ -23,6 +23,7 @@ const S = {
   visible: new Set(),
   observer: null,
   selected: new Set(),
+  rot: new Map(), // página -> giro extra (90, 180 o 270)
   anchor: null,
   focus: 1,
   mode: 'parts',
@@ -120,6 +121,7 @@ function teardown() {
   S.cells = [];
   S.visible.clear();
   S.selected.clear();
+  S.rot.clear();
   S.anchor = null;
   S.focus = 1;
   S.parts = [];
@@ -186,19 +188,26 @@ function onIntersect(entries) {
   }
 }
 
+function rotOf(n) {
+  return S.rot.get(n) || 0;
+}
+
 function requestThumb(n) {
   const cell = S.cells[n];
-  if (!cell || cell.dataset.loaded === '1' || cell.dataset.loading === '1' || !S.thumbs) return;
-  const hit = S.thumbs.cached(n);
+  if (!cell || !S.thumbs) return;
+  const rot = rotOf(n);
+  const shown = cell.dataset.loaded === '1' && Number(cell.dataset.rot || 0) === rot;
+  if (shown || cell.dataset.loading === String(rot)) return;
+  const hit = S.thumbs.cached(n, rot);
   if (hit) {
-    applyThumb(n, hit);
+    applyThumb(n, hit, rot);
     return;
   }
-  cell.dataset.loading = '1';
+  cell.dataset.loading = String(rot);
   const thumbs = S.thumbs;
-  thumbs.request(n, () => S.visible.has(n) && S.thumbs === thumbs)
+  thumbs.request(n, () => S.visible.has(n) && S.thumbs === thumbs && rotOf(n) === rot, rot)
     .then((res) => {
-      if (S.thumbs === thumbs) applyThumb(n, res);
+      if (S.thumbs === thumbs && rotOf(n) === rot) applyThumb(n, res, rot);
     })
     .catch((err) => {
       if (err?.name !== 'AbortError' && S.thumbs === thumbs) {
@@ -207,11 +216,11 @@ function requestThumb(n) {
       }
     })
     .finally(() => {
-      delete cell.dataset.loading;
+      if (cell.dataset.loading === String(rot)) delete cell.dataset.loading;
     });
 }
 
-function applyThumb(n, { url, w, h }) {
+function applyThumb(n, { url, w, h }, rot = 0) {
   const cell = S.cells[n];
   if (!cell) return;
   const sheet = cell.querySelector('.sheet');
@@ -228,6 +237,35 @@ function applyThumb(n, { url, w, h }) {
   wrap.classList.toggle('wide', ratio > BOX_RATIO);
   sheet.querySelector('.ph').hidden = true;
   cell.dataset.loaded = '1';
+  cell.dataset.rot = String(rot);
+}
+
+/* ================================================================== giros */
+
+function rotatePages(pages, delta) {
+  if (!S.numPages || !pages.length) return;
+  for (const n of pages) {
+    const r = (rotOf(n) + delta) % 360;
+    if (r) S.rot.set(n, r);
+    else S.rot.delete(n);
+    const cell = S.cells[n];
+    cell.classList.toggle('rotated', !!r);
+    if (S.visible.has(n)) requestThumb(n); // la miniatura vieja queda hasta que llega la nueva
+    else if (cell.dataset.loaded === '1') cell.dataset.loaded = '0';
+  }
+  updateRun();
+}
+
+/** Giros para qpdf: posiciones (1, 2, …) dentro de `pageList`, agrupadas por ángulo. */
+function rotationsFor(pageList) {
+  const by = new Map();
+  pageList.forEach((n, i) => {
+    const r = rotOf(n);
+    if (!r) return;
+    if (!by.has(r)) by.set(r, []);
+    by.get(r).push(i + 1);
+  });
+  return [...by].map(([angle, pos]) => ({ angle, range: toRangeString(pos) }));
 }
 
 function onEvict(n) {
@@ -504,6 +542,7 @@ function renderParts() {
       'aria-label': `Nombre del archivo de la parte ${i + 1}`, 'data-f': 'name',
     });
     const remove = el('button', { class: 'icon-btn', 'data-act': 'remove', 'aria-label': `Quitar la parte ${i + 1}`, title: 'Quitar' }, icon('x'));
+    const rotate = el('button', { class: 'icon-btn', 'data-act': 'rot', 'aria-label': `Girar 90° las páginas de la parte ${i + 1}`, title: 'Girar esta parte 90°' }, icon('rotr'));
     let body;
     if (p.mode === 'range') {
       body = el('div', { class: 'part-body' },
@@ -519,7 +558,7 @@ function renderParts() {
       el('button', { class: 'link', 'data-act': 'mode' }, p.mode === 'range' ? 'Escribir páginas sueltas' : 'Usar desde / hasta'),
       el('button', { class: 'link', 'data-act': 'show' }, 'Seleccionar en miniaturas'));
     const li = el('li', { class: 'part', 'data-id': p.id },
-      el('div', { class: 'part-head' }, tag, name, remove), body, foot, el('p', { class: 'part-error', hidden: true }));
+      el('div', { class: 'part-head' }, tag, name, rotate, remove), body, foot, el('p', { class: 'part-error', hidden: true }));
     li.style.setProperty('--pc', partColor(i));
     tag.style.setProperty('--pc', partColor(i));
     return li;
@@ -569,6 +608,7 @@ function onPartsClick(e) {
   if (!p) return;
   const act = btn.dataset.act;
   if (act === 'remove') removePart(p.id);
+  else if (act === 'rot') rotatePages(p.pages, 90);
   else if (act === 'mode') switchPartMode(p);
   else if (act === 'show' && p.pages.length) {
     setSelection(p.pages);
@@ -608,7 +648,7 @@ function updateEvery() {
   }
   if (!everyValid()) {
     input.classList.add('invalid');
-    out.textContent = `Elegí un número entre 1 y ${S.numPages}.`;
+    out.textContent = `Entre 1 y ${S.numPages}`;
     return;
   }
   input.classList.remove('invalid');
@@ -616,9 +656,8 @@ function updateEvery() {
   const last = groups[groups.length - 1];
   const lastSize = last.to - last.from + 1;
   const n = Number(S.everyN);
-  let text = `Se van a generar ${plural(groups.length, 'archivo', 'archivos')}`;
-  text += n === 1 ? ', uno por página.' : ` de ${n} páginas`;
-  if (n > 1) text += lastSize !== n ? ` (el último, de ${plural(lastSize, 'página', 'páginas')}).` : '.';
+  let text = plural(groups.length, 'archivo', 'archivos');
+  if (n > 1 && lastSize !== n) text += ` (el último de ${lastSize})`;
   out.textContent = text;
 }
 
@@ -695,6 +734,11 @@ function plan() {
     const groups = everyGroups();
     return { kind: 'every', groups, names: everyNames(groups), pages: S.numPages };
   }
+  if (!S.parts.length && S.rot.size) {
+    // Sin partes pero con páginas giradas: el documento entero, girado.
+    const all = Array.from({ length: S.numPages }, (_, i) => i + 1);
+    return { kind: 'parts', parts: [{ pages: all }], names: [`${S.base}_girado.pdf`], pages: S.numPages };
+  }
   const parts = S.parts.filter((p) => !p.error && p.pages.length);
   if (!parts.length || parts.length !== S.parts.length) return null;
   const names = uniqueNames(parts.map((p, i) => ensurePdfExt(safeFileName(p.nameEdited ? p.name : autoName(p, S.parts.indexOf(p)), `${S.base}_parte${i + 1}`))));
@@ -714,15 +758,15 @@ function updateRun() {
   if (!pl) {
     btn.disabled = true;
     btn.textContent = 'Generar archivos';
-    if (S.mode === 'parts' && S.parts.some((p) => p.error)) sum.textContent = 'Revisá las partes marcadas en rojo.';
-    else if (S.mode === 'parts') sum.textContent = 'Agregá al menos una parte.';
+    if (S.mode === 'parts' && S.parts.some((p) => p.error)) sum.textContent = 'Hay partes con errores.';
     else sum.textContent = '';
     return;
   }
   const count = pl.names.length;
   btn.disabled = false;
-  btn.textContent = count === 1 ? 'Generar 1 archivo' : `Generar ${count.toLocaleString('es-AR')} archivos`;
-  sum.textContent = `${plural(pl.pages, 'página', 'páginas')} en total.`;
+  if (pl.kind === 'parts' && !S.parts.length) btn.textContent = 'Generar PDF girado';
+  else btn.textContent = count === 1 ? 'Generar 1 archivo' : `Generar ${count.toLocaleString('es-AR')} archivos`;
+  sum.textContent = plural(pl.pages, 'página', 'páginas');
 }
 
 function updateAll() {
@@ -738,8 +782,7 @@ async function run() {
   const input = { file, password: S.source.password };
   const prog = progress();
   const count = pl.names.length;
-  const signal = prog.open('Dividiendo el PDF', `Se van a generar ${plural(count, 'archivo', 'archivos')} a partir de “${file.name}”.`);
-  const t0 = performance.now();
+  const signal = prog.open('Generando', plural(count, 'archivo', 'archivos'));
   try {
     let out;
     if (pl.kind === 'every') {
@@ -751,6 +794,7 @@ async function run() {
         count: S.numPages,
         outputs: pl.names.map((name) => ({ name })),
         trimResources: count > 1,
+        rotations: rotationsFor(Array.from({ length: S.numPages }, (_, i) => i + 1)),
       }, {
         signal,
         onProgress: (done, total) => {
@@ -769,6 +813,7 @@ async function run() {
           pages: [{ input: 0, range: toRangeString(p.pages) }],
           outputs: [{ name: pl.names[i] }],
           trimResources: !(p.pages.length === S.numPages && p.pages[0] === 1 && p.pages[p.pages.length - 1] === S.numPages),
+          rotations: rotationsFor(p.pages),
         }, {
           signal,
           onProgress: (done, total) => prog.set((i + done / total) / pl.parts.length),
@@ -780,11 +825,8 @@ async function run() {
       }
     }
     prog.close();
-    const secs = (performance.now() - t0) / 1000;
     results.add({ ...out, title: count === 1 ? 'Listo' : `Listo: ${plural(count, 'archivo', 'archivos')}` });
     if (out.files.length === 1) downloadFile(out.files[0]);
-    const secsText = secs.toLocaleString('es-AR', { maximumFractionDigits: secs < 10 ? 1 : 0 });
-    toast(`${count === 1 ? 'Archivo generado' : plural(count, 'archivo generado', 'archivos generados')} en ${secsText} s.`);
   } catch (err) {
     prog.close();
     if (isAbort(err)) toast('Se canceló la división.');
@@ -799,13 +841,14 @@ async function extractSelection() {
   const short = prettyRanges(pages).replace(/–/g, '-').replace(/, /g, '_');
   const name = ensurePdfExt(safeFileName(short.length <= 40 ? `${S.base}_p${short}` : `${S.base}_seleccion`));
   const prog = progress();
-  const signal = prog.open('Extrayendo páginas', `${plural(pages.length, 'página', 'páginas')} de “${S.file.name}”.`);
+  const signal = prog.open('Extrayendo', plural(pages.length, 'página', 'páginas'));
   try {
     const r = await runQpdf({
       inputs: [{ file: S.file, password: S.source.password }],
       pages: [{ input: 0, range: toRangeString(pages) }],
       outputs: [{ name }],
       trimResources: pages.length !== S.numPages,
+      rotations: rotationsFor(pages),
     }, { signal, onProgress: (d, t) => prog.set(d / t) });
     prog.close();
     results.add({ files: r.files, warnings: r.warnings, storage: r.storage, packs: [r.packName].filter(Boolean), title: 'Listo' });
@@ -842,7 +885,7 @@ async function showViewerPage(n) {
   const canvas = el('canvas', { id: 'viewer-canvas' });
   try {
     const rect = body.getBoundingClientRect();
-    const task = await renderInto(S.source, viewerPage, canvas, rect.width - 32, rect.height - 32);
+    const task = await renderInto(S.source, viewerPage, canvas, rect.width - 32, rect.height - 32, rotOf(viewerPage));
     task.promise.catch(() => {}); // si se descarta, que no quede un rechazo sin atender
     if (seq !== viewerSeq) {
       task.cancel(); // ya se pidió otra página
@@ -903,6 +946,20 @@ export function initSplit() {
     if (e.key === 'Enter' && go.value) gotoPage(Number(go.value));
   });
 
+  document.querySelectorAll('[data-rot-sel]').forEach((b) => b.addEventListener('click', () => {
+    rotatePages(sortedSelection(), Number(b.dataset.rotSel));
+  }));
+  document.querySelectorAll('[data-rot-all]').forEach((b) => b.addEventListener('click', () => {
+    rotatePages(Array.from({ length: S.numPages }, (_, i) => i + 1), Number(b.dataset.rotAll));
+  }));
+  $('#viewer-rotl').addEventListener('click', () => {
+    rotatePages([viewerPage], 270);
+    showViewerPage(viewerPage);
+  });
+  $('#viewer-rotr').addEventListener('click', () => {
+    rotatePages([viewerPage], 90);
+    showViewerPage(viewerPage);
+  });
   $('#sel-to-part').addEventListener('click', addSelectionPart);
   $('#sel-extract').addEventListener('click', extractSelection);
   $('#sel-clear').addEventListener('click', () => setSelection([]));

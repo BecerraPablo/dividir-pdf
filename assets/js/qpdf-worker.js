@@ -274,7 +274,7 @@ function splitOutputNames(count, groupSize) {
 }
 
 async function runJob(job) {
-  const { id, inputs, pages, split = 0, count = 0, outputs, trimResources, sessionDir, packName, preferMemory } = job;
+  const { id, inputs, pages, split = 0, count = 0, outputs, trimResources, rotations = [], sessionDir, packName, preferMemory } = job;
   const names = split > 0 ? splitOutputNames(count, split) : ['o.pdf'];
   if (names.length !== outputs.length) throw new Error('Cantidad de salidas inconsistente.');
 
@@ -341,8 +341,11 @@ async function runJob(job) {
     '--stream-data=preserve', // copia los streams tal cual: rápido y sin pérdida
     '--object-streams=generate', // comprime los objetos pequeños
     `--remove-unreferenced-resources=${trimResources ? 'yes' : 'no'}`,
-    '--pages',
   ];
+  // Giros: se suman al que ya tenga cada página. Los números son posiciones en el documento
+  // armado (antes de partirlo con --split-pages). Solo cambia /Rotate: no se recomprime nada.
+  for (const r of rotations) args.push(`--rotate=+${r.angle}:${r.range}`);
+  args.push('--pages');
   for (const p of pages) {
     args.push(`/in/f${p.input}.pdf`);
     const pw = inputs[p.input].password;

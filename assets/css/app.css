@@ -823,6 +823,22 @@ body.dragging .mat::after {
   height: 17px;
 }
 
+.icon-btn.bordered {
+  border-color: var(--line);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.icon-btn.on-dark {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.icon-btn.on-dark:hover:not(:disabled) {
+  border-color: #fff;
+  color: #fff;
+}
+
 .input {
   height: 34px;
   padding: 4px 9px;

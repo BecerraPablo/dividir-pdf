@@ -159,7 +159,7 @@ function canvasToBlob(canvas, type, quality) {
 }
 
 /** Renderiza una página dentro de un canvas visible (vista ampliada). */
-export async function renderInto(source, n, canvas, maxW, maxH) {
+export async function renderInto(source, n, canvas, maxW, maxH, extraRotation = 0) {
   await source.ready; // si se está reabriendo el documento, esperar
   // Mientras haya un render acá, la cola de miniaturas no recicla el documento.
   source.activeRenders++;
@@ -167,10 +167,11 @@ export async function renderInto(source, n, canvas, maxW, maxH) {
   let handedOff = false; // desde que existe la tarea, la libera su propia promesa
   try {
     page = await source.doc.getPage(n);
-    const vp1 = page.getViewport({ scale: 1 });
+    const rotation = (page.rotate + extraRotation) % 360;
+    const vp1 = page.getViewport({ scale: 1, rotation });
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const fit = Math.min(maxW / vp1.width, maxH / vp1.height);
-    const vp = page.getViewport({ scale: fit * dpr });
+    const vp = page.getViewport({ scale: fit * dpr, rotation });
     canvas.width = Math.max(1, Math.floor(vp.width));
     canvas.height = Math.max(1, Math.floor(vp.height));
     canvas.style.width = `${Math.floor(vp1.width * fit)}px`;
@@ -206,8 +207,9 @@ export class Thumbnailer {
     this.width = width;
     this.maxCache = maxCache;
     this.concurrency = concurrency;
-    this.cache = new Map(); // n -> { url, w, h }
-    this.pending = new Map(); // n -> { wanted, resolvers: [] }
+    // Las claves son "página@giro": una misma página girada es otra miniatura.
+    this.cache = new Map(); // clave -> { url, w, h }
+    this.pending = new Map(); // clave -> { n, rot, wanted, resolvers: [] }
     this.running = new Set();
     this.rendered = 0;
     this.lastCleanup = 0;
@@ -216,26 +218,28 @@ export class Thumbnailer {
     this.onEvict = null;
   }
 
-  cached(n) {
-    const hit = this.cache.get(n);
+  cached(n, rot = 0) {
+    const key = `${n}@${rot}`;
+    const hit = this.cache.get(key);
     if (hit) {
-      this.cache.delete(n);
-      this.cache.set(n, hit);
+      this.cache.delete(key);
+      this.cache.set(key, hit);
     }
     return hit || null;
   }
 
-  /** wanted() devuelve false si la miniatura ya no hace falta. */
-  request(n, wanted = () => true) {
-    const hit = this.cached(n);
+  /** `rot`: giro extra en grados. wanted() devuelve false si la miniatura ya no hace falta. */
+  request(n, wanted = () => true, rot = 0) {
+    const hit = this.cached(n, rot);
     if (hit) return Promise.resolve(hit);
+    const key = `${n}@${rot}`;
     return new Promise((resolve, reject) => {
-      let p = this.pending.get(n);
-      if (p) this.pending.delete(n); // reinsertar al final = más prioridad
-      else p = { wanted, resolvers: [] };
+      let p = this.pending.get(key);
+      if (p) this.pending.delete(key); // reinsertar al final = más prioridad
+      else p = { n, rot, wanted, resolvers: [] };
       p.wanted = wanted;
       p.resolvers.push({ resolve, reject });
-      this.pending.set(n, p);
+      this.pending.set(key, p);
       this.pump();
     });
   }
@@ -293,7 +297,7 @@ export class Thumbnailer {
       const p = this.pending.get(picked);
       this.pending.delete(picked);
       this.running.add(picked);
-      this.render(picked)
+      this.render(p.n, p.rot)
         .then((res) => p.resolvers.forEach((r) => r.resolve(res)), (err) => p.resolvers.forEach((r) => r.reject(err)))
         .finally(() => {
           this.running.delete(picked);
@@ -302,12 +306,13 @@ export class Thumbnailer {
     }
   }
 
-  async render(n) {
+  async render(n, rot = 0) {
     const page = await this.source.doc.getPage(n);
     try {
-      const vp1 = page.getViewport({ scale: 1 });
+      const rotation = (page.rotate + rot) % 360;
+      const vp1 = page.getViewport({ scale: 1, rotation });
       const scale = Math.min(this.width / vp1.width, (this.width * 1.6) / vp1.height);
-      const vp = page.getViewport({ scale });
+      const vp = page.getViewport({ scale, rotation });
       const w = Math.max(1, Math.round(vp.width));
       const h = Math.max(1, Math.round(vp.height));
       const canvas = makeCanvas(w, h);
@@ -320,7 +325,7 @@ export class Thumbnailer {
       const blob = await canvasToBlob(canvas, 'image/jpeg', 0.82);
       if (this.destroyed) throw new DOMException('destroyed', 'AbortError');
       const res = { url: URL.createObjectURL(blob), w, h };
-      this.cache.set(n, res);
+      this.cache.set(`${n}@${rot}`, res);
       this.rendered++;
       this.evict();
       return res;
@@ -331,9 +336,9 @@ export class Thumbnailer {
 
   evict() {
     while (this.cache.size > this.maxCache) {
-      const [n, v] = this.cache.entries().next().value;
-      this.cache.delete(n);
-      this.onEvict?.(n, v.url);
+      const [key, v] = this.cache.entries().next().value;
+      this.cache.delete(key);
+      this.onEvict?.(Number(key.split('@')[0]), v.url);
       URL.revokeObjectURL(v.url);
     }
   }

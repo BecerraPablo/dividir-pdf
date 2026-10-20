@@ -208,7 +208,7 @@ export class ResultsPanel {
       return;
     }
     const prog = progress();
-    const signal = prog.open('Armando el ZIP', `${plural(group.files.length, 'archivo', 'archivos')} sin recomprimir.`);
+    const signal = prog.open('Armando el ZIP', plural(group.files.length, 'archivo', 'archivos'));
     try {
       const zip = await makeZipFile(group.files, this.zipName(group), {
         signal,
@@ -269,7 +269,7 @@ export class ResultsPanel {
       section.append(el('p', { class: 'results-more' }, `…y ${plural(group.files.length - MAX_LISTED, 'archivo más', 'archivos más')} (están todos en el ZIP).`));
     }
     if (group.storage === 'memory') {
-      section.append(el('p', { class: 'notice' }, 'El navegador no permitió usar su almacenamiento temporal (¿ventana privada?), así que los archivos quedaron en memoria. Descargalos y tocá “Borrar” para liberarla.'));
+      section.append(el('p', { class: 'notice' }, 'Quedaron en memoria (¿ventana privada?): descargalos y tocá “Borrar”.'));
     }
     if (group.warnings.length) {
       section.append(el('p', { class: 'notice' }, `qpdf avisó: ${group.warnings.slice(0, 3).join(' / ')}`));

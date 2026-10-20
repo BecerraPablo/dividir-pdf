@@ -142,13 +142,12 @@ function updateSummary() {
   const sum = $('#merge-summary');
   btn.disabled = loading || invalid || ready.length < 1 || (ready.length < 2 && !ready.some((it) => it.pages));
   btn.textContent = ready.length > 1 ? `Unir ${ready.length} PDF` : 'Unir PDF';
-  if (loading) sum.textContent = 'Leyendo los archivos…';
-  else if (invalid) sum.textContent = 'Revisá los rangos marcados en rojo.';
-  else if (!ready.length) sum.textContent = M.items.length ? 'No hay archivos que se puedan unir.' : 'Agregá al menos dos PDF.';
-  else if (ready.length < 2 && !ready.some((it) => it.pages)) sum.textContent = 'Agregá otro PDF (o elegí páginas de este).';
+  if (loading) sum.textContent = 'Leyendo…';
+  else if (invalid) sum.textContent = 'Hay rangos con errores.';
+  else if (!ready.length || (ready.length < 2 && !ready.some((it) => it.pages))) sum.textContent = '';
   else {
     const skipped = M.items.length - ready.length;
-    sum.textContent = `El resultado va a tener ${plural(total, 'página', 'páginas')}.${skipped ? ` Se omiten ${plural(skipped, 'archivo con error', 'archivos con error')}.` : ''}`;
+    sum.textContent = `${plural(total, 'página', 'páginas')}${skipped ? ` · ${plural(skipped, 'archivo omitido', 'archivos omitidos')}` : ''}`;
   }
 }
 
@@ -239,9 +238,8 @@ async function run() {
   const name = ensurePdfExt(safeFileName($('#merge-name').value, 'unido'));
   const total = ready.reduce((s, it) => s + pagesOf(it), 0);
   const prog = progress();
-  const signal = prog.open('Uniendo PDF', `${plural(ready.length, 'archivo', 'archivos')}, ${plural(total, 'página', 'páginas')} en total.`);
+  const signal = prog.open('Uniendo', `${plural(ready.length, 'archivo', 'archivos')} · ${plural(total, 'página', 'páginas')}`);
   prog.step(name);
-  const t0 = performance.now();
   try {
     const r = await runQpdf({
       inputs: ready.map((it) => ({ file: it.file, password: it.password })),
@@ -252,8 +250,6 @@ async function run() {
     prog.close();
     results.add({ files: r.files, warnings: r.warnings, storage: r.storage, packs: [r.packName].filter(Boolean), title: 'Listo' });
     downloadFile(r.files[0]);
-    const secs = (performance.now() - t0) / 1000;
-    toast(`PDF unido en ${secs.toLocaleString('es-AR', { maximumFractionDigits: secs < 10 ? 1 : 0 })} s.`);
   } catch (err) {
     prog.close();
     if (isAbort(err)) toast('Se canceló la unión.');

@@ -85,6 +85,7 @@ function runQpdfOnce(spec, opts, preferMemory) {
     split: spec.split || 0,
     count: spec.count || 0,
     trimResources: !!spec.trimResources,
+    rotations: spec.rotations || [],
     sessionDir: SESSION_DIR,
     packName: packName('pdf'),
     preferMemory,

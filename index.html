@@ -26,6 +26,8 @@
       <symbol id="i-grip" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></symbol>
       <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></symbol>
       <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-rotl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M4.6 9A8 8 0 1 1 6 17.4"/></symbol>
+      <symbol id="i-rotr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v5h-5"/><path d="M19.4 9A8 8 0 1 0 18 17.4"/></symbol>
       <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
       <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6 2.5h8l4.5 4.5v14.5H6z"/><path d="M14 2.5V7h4.5"/></symbol>
       <symbol id="i-stack" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M18 8h22l10 10v32H18z"/><path d="M40 8v10h10"/><path d="M12 16v40h30" stroke-dasharray="4 4"/><path d="M6 31h52" stroke-dasharray="6 5"/></symbol>
@@ -43,7 +45,7 @@
     </nav>
     <p class="privacy">
       <svg><use href="#i-lock"/></svg>
-      <span>Todo se procesa en tu computadora. Los PDF no se suben a ningún servidor.</span>
+      <span>No se sube nada: todo queda en tu computadora</span>
     </p>
   </header>
 
@@ -63,6 +65,12 @@
             <button class="btn small" data-sel="none">Ninguna</button>
             <button class="btn small" data-sel="invert">Invertir</button>
           </div>
+          <div class="toolgroup" role="group" aria-label="Girar todo el documento">
+            <span class="label">Girar todo</span>
+            <button class="icon-btn bordered" data-rot-all="270" aria-label="Girar todo 90° a la izquierda" title="90° a la izquierda"><svg><use href="#i-rotl"/></svg></button>
+            <button class="icon-btn bordered" data-rot-all="90" aria-label="Girar todo 90° a la derecha" title="90° a la derecha"><svg><use href="#i-rotr"/></svg></button>
+            <button class="btn small" data-rot-all="180" title="Girar todo 180°">180°</button>
+          </div>
           <div class="toolgroup">
             <label class="label" for="thumb-size">Tamaño</label>
             <input type="range" id="thumb-size" min="70" max="280" step="10" value="150">
@@ -78,10 +86,8 @@
             <div class="drop" id="split-drop">
               <div class="drop-inner">
                 <svg class="drop-icon"><use href="#i-stack"/></svg>
-                <h2>Soltá un PDF acá para dividirlo</h2>
-                <p>Vas a ver todas las páginas en miniatura para elegir cuáles van en cada archivo: por rangos (desde–hasta) o tocándolas una por una.</p>
+                <h2>Soltá un PDF acá</h2>
                 <button class="btn mark big" id="split-pick">Elegir PDF</button>
-                <p class="fine">Pensado para archivos grandes: probado con PDF de más de 1&nbsp;GB. El archivo se lee desde tu disco y nunca sale de tu computadora.</p>
               </div>
             </div>
             <div class="loading" id="split-loading" hidden>
@@ -92,7 +98,10 @@
           <div class="selbar" id="selbar" hidden>
             <span class="count" id="sel-count"></span>
             <span class="which" id="sel-which"></span>
-            <button class="btn small mark" id="sel-to-part">Nueva parte con estas páginas</button>
+            <button class="icon-btn on-dark" data-rot-sel="270" aria-label="Girar 90° a la izquierda" title="90° a la izquierda"><svg><use href="#i-rotl"/></svg></button>
+            <button class="icon-btn on-dark" data-rot-sel="90" aria-label="Girar 90° a la derecha" title="90° a la derecha"><svg><use href="#i-rotr"/></svg></button>
+            <button class="btn small on-dark" data-rot-sel="180" title="Girar 180°">180°</button>
+            <button class="btn small mark" id="sel-to-part">Nueva parte</button>
             <button class="btn small on-dark" id="sel-extract">Extraer a un PDF</button>
             <button class="icon-btn" id="sel-clear" aria-label="Quitar la selección" style="color:#fff"><svg><use href="#i-x"/></svg></button>
           </div>
@@ -102,7 +111,6 @@
       <aside class="side" id="split-side" aria-label="Archivos que se van a generar">
         <div class="side-scroll">
           <h2>Archivos a generar</h2>
-          <p class="lead">Cada parte se guarda como un PDF aparte.</p>
           <div class="seg" role="radiogroup" aria-label="Cómo dividir">
             <button role="radio" aria-checked="true" data-mode="parts">Elegir partes</button>
             <button role="radio" aria-checked="false" data-mode="every">Partes iguales</button>
@@ -110,14 +118,11 @@
 
           <div id="mode-parts">
             <ol class="parts" id="parts"></ol>
-            <div class="empty-parts" id="parts-empty">
-              Todavía no hay partes. Agregá un rango con <b>desde</b> y <b>hasta</b>, o seleccioná páginas en las miniaturas y creá una parte con ellas.
-            </div>
+            <div class="empty-parts" id="parts-empty">Sin partes todavía.</div>
             <div class="side-actions">
               <button class="btn" id="add-range"><svg><use href="#i-plus"/></svg>Agregar rango</button>
               <button class="btn" id="add-selection" disabled><svg><use href="#i-plus"/></svg>Parte con la selección</button>
             </div>
-            <p class="hint">Consejo: tocá una página y después otra con <kbd>Shift</kbd> apretado para seleccionar todas las del medio.</p>
           </div>
 
           <div id="mode-every" class="every" hidden>
@@ -135,11 +140,6 @@
           <p class="run-summary" id="split-summary"></p>
           <button class="btn primary big" id="split-run" disabled>Generar archivos</button>
         </div>
-        <details class="about">
-          <summary>Cómo funciona</summary>
-          <p>Las miniaturas se dibujan con PDF.js leyendo solo los pedazos del archivo que hacen falta. Para cortar y unir se usa qpdf compilado a WebAssembly, que copia las páginas sin recomprimirlas: no se pierde calidad.</p>
-          <p>Los resultados se guardan temporalmente en el almacenamiento privado del navegador y se borran al cerrar la pestaña.</p>
-        </details>
       </aside>
     </section>
 
@@ -162,10 +162,8 @@
             <div class="drop" id="merge-drop">
               <div class="drop-inner">
                 <svg class="drop-icon"><use href="#i-stack"/></svg>
-                <h2>Soltá acá los PDF que querés unir</h2>
-                <p>Podés agregar todos los que quieras, ordenarlos arrastrándolos y elegir qué páginas tomar de cada uno.</p>
+                <h2>Soltá acá los PDF a unir</h2>
                 <button class="btn mark big" id="merge-pick">Elegir PDF</button>
-                <p class="fine">Los archivos se leen desde tu disco y nunca salen de tu computadora.</p>
               </div>
             </div>
             <ol class="files" id="files" aria-label="PDF a unir, en orden" hidden></ol>
@@ -176,7 +174,6 @@
       <aside class="side" id="merge-side" aria-label="Archivo unido">
         <div class="side-scroll">
           <h2>Archivo unido</h2>
-          <p class="lead">Se arma en el orden de la lista. Si dejás “Páginas” vacío, se toma el PDF completo.</p>
           <label class="field">
             <span>Nombre del archivo</span>
             <input class="input" id="merge-name" value="unido.pdf" spellcheck="false">
@@ -198,6 +195,8 @@
   <dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
     <div class="viewer-head">
       <span class="title" id="viewer-title">Página</span>
+      <button class="icon-btn" id="viewer-rotl" aria-label="Girar 90° a la izquierda" title="90° a la izquierda"><svg><use href="#i-rotl"/></svg></button>
+      <button class="icon-btn" id="viewer-rotr" aria-label="Girar 90° a la derecha" title="90° a la derecha"><svg><use href="#i-rotr"/></svg></button>
       <button class="btn small mark" id="viewer-select">Seleccionar</button>
       <button class="icon-btn" id="viewer-prev" aria-label="Página anterior"><svg><use href="#i-left"/></svg></button>
       <button class="icon-btn" id="viewer-next" aria-label="Página siguiente"><svg><use href="#i-right"/></svg></button>

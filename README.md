@@ -14,6 +14,7 @@ Herramienta web para **dividir** un PDF en varios archivos y **unir** varios PDF
 - **Partes iguales:** cortar cada N páginas (con N = 1 se obtiene un PDF por página).
 - **Extraer a un PDF:** saca las páginas seleccionadas en un solo archivo.
 - Vista ampliada de cualquier página (lupa o tecla `Z`).
+- **Girar** 90° a la izquierda o derecha, o 180°: las páginas seleccionadas, una parte o todo el documento. Sin partes, "Generar PDF girado" descarga el documento entero con los giros. El giro no recomprime nada.
 
 **Unir**
 
